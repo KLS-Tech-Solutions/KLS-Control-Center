@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+
+/*
+  KLS Control Center — design tokens
+  ----------------------------------
+  Brand language: Navy · Azure Blue · White · Light Gray.
+  Dark mode is class-based (`.dark` on <html>) so the theme toggle in the Topbar
+  wins over the OS preference in both directions.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Navy — primary brand anchor (sidebar, headings, deep surfaces) */
+  --color-navy-50: #eef2f8;
+  --color-navy-100: #d6dfee;
+  --color-navy-200: #adbedd;
+  --color-navy-300: #7d95c1;
+  --color-navy-400: #4f6a9c;
+  --color-navy-500: #2f4a78;
+  --color-navy-600: #1d3560;
+  --color-navy-700: #14284c;
+  --color-navy-800: #0f1f3c;
+  --color-navy-900: #0a1730;
+  --color-navy-950: #061225;
+
+  /* Azure — action colour (buttons, links, active nav, primary series) */
+  --color-azure-50: #eff6ff;
+  --color-azure-100: #dbeafe;
+  --color-azure-200: #bfdbfe;
+  --color-azure-300: #93c5fd;
+  --color-azure-400: #5598e7;
+  --color-azure-500: #2a78d6;
+  --color-azure-600: #1e88e5;
+  --color-azure-700: #1c5cab;
+  --color-azure-800: #184f95;
+  --color-azure-900: #0d366b;
+
+  /* Neutral light grays — page plane, hairlines, muted ink */
+  --color-mist-50: #f8fafc;
+  --color-mist-100: #f1f5f9;
+  --color-mist-200: #e6ebf2;
+  --color-mist-300: #d3dbe6;
+  --color-mist-400: #9aa7b8;
+  --color-mist-500: #6b7a8f;
+
+  /* Chart series — CVD-validated in both light and dark modes */
+  --color-series-1: #2a78d6;
+  --color-series-2: #eb6834;
+  --color-series-3: #1baf7a;
+  --color-series-4: #eda100;
+
+  /* Status — reserved, never reused as a series colour */
+  --color-status-good: #0ca30c;
+  --color-status-warning: #fab219;
+  --color-status-serious: #ec835a;
+  --color-status-critical: #d03b3b;
+
+  --font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --radius-card: 1rem;
+
+  --shadow-soft: 0 1px 2px rgba(6, 18, 37, 0.04), 0 8px 24px -12px rgba(6, 18, 37, 0.12);
+  --shadow-lift: 0 2px 4px rgba(6, 18, 37, 0.06), 0 20px 40px -20px rgba(6, 18, 37, 0.22);
+}
+
+/*
+  Semantic surface roles. Every component references these instead of raw hues,
+  so the light/dark swap happens in exactly one place.
+*/
+@layer base {
+  :root {
+    --plane: #f4f7fb; /* page background */
+    --surface: #ffffff; /* card surface */
+    --surface-muted: #f8fafc;
+    --hairline: rgba(6, 18, 37, 0.08);
+    --ink-primary: #0a1730;
+    --ink-secondary: #46566e;
+    --ink-muted: #7d8ca3;
+    --glass: rgba(255, 255, 255, 0.72);
+
+    /* Chart roles — light steps */
+    --grid: #e6ebf2;
+    --axis: #c7d0dd;
+    --s1: #2a78d6;
+    --s2: #eb6834;
+    --s3: #1baf7a;
+    --s4: #eda100;
+
+    /* Ordinal blue ramp — one hue, light→dark, for ranked single-dimension marks.
+       Lightest step stays above the 2:1 floor against the white card. */
+    --ord-1: #86b6ef;
+    --ord-2: #5598e7;
+    --ord-3: #2a78d6;
+    --ord-4: #1c5cab;
+  }
+
+  .dark {
+    --plane: #070f1d;
+    --surface: #0f1b2e;
+    --surface-muted: #14243b;
+    --hairline: rgba(255, 255, 255, 0.09);
+    --ink-primary: #f2f6fb;
+    --ink-secondary: #aebbcd;
+    --ink-muted: #7f8ea4;
+    --glass: rgba(15, 27, 46, 0.72);
+
+    /* Chart roles — dark steps of the same hues, validated on #0f1b2e */
+    --grid: #1c2c45;
+    --axis: #2a3d59;
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --s4: #c98500;
+
+    /* Dark ordinal ramp — reversed direction so the darkest step still clears
+       the contrast floor against the dark card. */
+    --ord-1: #b7d3f6;
+    --ord-2: #86b6ef;
+    --ord-3: #5598e7;
+    --ord-4: #2a78d6;
+  }
+
+  * {
+    border-color: var(--hairline);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--plane);
+    color: var(--ink-primary);
+    font-family: var(--font-sans);
+  }
+
+  /* Slim, unobtrusive scrollbars that match the surface language */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--axis);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-azure-600);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Frosted panel used by the Topbar and the Login card */
+  .glass {
+    background-color: var(--glass);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+  }
+
+  .text-secondary {
+    color: var(--ink-secondary);
+  }
+  .text-muted {
+    color: var(--ink-muted);
+  }
+  .bg-surface {
+    background-color: var(--surface);
+  }
+  .bg-surface-muted {
+    background-color: var(--surface-muted);
+  }
+  .bg-plane {
+    background-color: var(--plane);
+  }
+  .border-hairline {
+    border-color: var(--hairline);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
