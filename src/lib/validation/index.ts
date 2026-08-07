@@ -46,6 +46,13 @@ export type ResetPasswordValues = z.input<typeof resetPasswordSchema>;
  * feedback the student receives — an approval with no note tells them nothing,
  * and a rejection with no note leaves them guessing what to fix.
  */
+const optionalUrl = z
+  .union([
+    z.literal(""),
+    z.string().trim().pipe(z.url("Enter a valid URL")),
+  ])
+  .transform((value) => (value === "" ? undefined : value));
+
 export const reviewSchema = z.object({
   status: z.enum(["approved", "rejected"]),
   remarks: z
@@ -70,6 +77,8 @@ export const domainSchema = z.object({
   duration: z.string().trim().min(2, "e.g. 4 weeks").max(40, "Keep this short"),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]),
   icon: z.string().trim().min(1).max(40),
+  image_url: optionalUrl,
+  display_order: z.coerce.number().int().min(0, "Cannot be negative").max(999),
   status: z.enum(["active", "inactive"]),
 });
 export type DomainValues = z.input<typeof domainSchema>;
@@ -89,14 +98,29 @@ export const batchSchema = z
   });
 export type BatchValues = z.input<typeof batchSchema>;
 
-export const taskSchema = z.object({
-  title: z.string().trim().min(3, "Title is required").max(200, "Title is too long"),
-  description: z.string().trim().min(10, "Describe what the student must build"),
-  order_number: z.coerce.number().int().min(0, "Position cannot be negative"),
-  estimated_hours: z.coerce.number().int().min(1, "At least 1 hour").max(200, "At most 200"),
-  deadline: z.string().optional(),
-  requirements: z.string().optional(),
-});
+export const taskSchema = z
+  .object({
+    title: z.string().trim().min(3, "Title is required").max(200, "Title is too long"),
+    description: z.string().trim().min(10, "Describe what the student must build"),
+    order_number: z.coerce.number().int().min(0, "Position cannot be negative"),
+    estimated_hours: z.coerce.number().int().min(1, "At least 1 hour").max(200, "At most 200"),
+    deadline: z.string().optional(),
+    requirements: z.string().optional(),
+    instructions: z.string().optional(),
+
+    // Submission rules. These are enforced again by the API on every upload.
+    is_active: z.boolean(),
+    min_screenshots: z.coerce.number().int().min(0, "Cannot be negative").max(20, "At most 20"),
+    max_screenshots: z.coerce.number().int().min(1, "At least 1").max(20, "At most 20"),
+    require_github: z.boolean(),
+    require_explanation: z.boolean(),
+    min_explanation_chars: z.coerce.number().int().min(0).max(5000),
+    require_live_demo: z.boolean(),
+  })
+  .refine((data) => Number(data.max_screenshots) >= Number(data.min_screenshots), {
+    path: ["max_screenshots"],
+    message: "Maximum must be at least the minimum",
+  });
 export type TaskValues = z.input<typeof taskSchema>;
 
 /* --- Team ------------------------------------------------------------------ */

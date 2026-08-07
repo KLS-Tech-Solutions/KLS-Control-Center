@@ -1,110 +1,183 @@
-# KLS Control Center
+# KLS Academy — Admin console
 
-Admin portal UI prototype for **KLS Tech Solutions** — `admin.klstechsolutions.in`.
+Internal review and management console at `admin.klstechsolutions.in`. Shares one FastAPI
+backend and one PostgreSQL database with the student portal.
 
-This is a **frontend-only reference implementation**. There is no backend, no
-authentication, no database and no network calls anywhere in the app. Every
-screen renders from typed mock modules in `src/data/`, so the development team
-can review flows, layout and component behaviour before FastAPI work begins.
+**Status: production-ready.** Every screen calls the real API. There is no mock data and
+no demo login — the backend must be running.
 
-## Stack
+---
 
-| Concern | Choice |
-|---|---|
-| Framework | React + TypeScript |
-| Build | Vite |
-| Styling | Tailwind CSS v4 (`@theme` tokens, no config file) |
-| Routing | React Router (`createBrowserRouter`, lazy routes) |
-| Icons | Lucide |
-| Motion | Framer Motion |
-| Charts | Recharts |
-| UI primitives | Hand-built shadcn/ui-style components in `src/components/ui` |
+## Run it
 
-## Getting started
+The API has to be up first:
+
+```bash
+cd ../kls-api
+.venv\Scripts\activate
+uvicorn app.main:app --reload
+```
+
+Then:
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # type-check + production build to dist/
-npm run preview  # serve the production build
-npm run lint
+copy .env.example .env.local
+npm run dev          # http://localhost:3001
 ```
 
-## Deploying to Vercel
+Sign in with the super admin created by `kls-api/scripts/seed.py`.
 
-Import the repository and accept the detected Vite preset — `vercel.json`
-already rewrites all paths to `index.html` so client-side routes resolve on
-refresh and direct links.
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Development server on port 3001 |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run typecheck` | TypeScript, no emit |
 
-- Build command: `npm run build`
-- Output directory: `dist`
+---
 
-## Project structure
+## Stack
 
-```
-src/
-  components/
-    layout/        AppLayout · Sidebar · Topbar · Logo
-    ui/            Card · Button · Badge · Input · Table · Avatar · Toggle
-    charts/        chartTheme · ChartTooltip / ChartLegend
-    StatCard.tsx   DashboardCard.tsx  ModuleCard.tsx  PageHeader.tsx
-    TableToolbar.tsx  PageSkeleton.tsx
-  pages/           Login · Dashboard · Students · Internships · Certificates
-                   Payments · Analytics · Settings · Profile · Support · NotFound
-  data/            students · internships · certificates · payments
-                   analytics · support · admin   (mock JSON-shaped modules)
-  routes/          route table + sidebar navigation config
-  types/           domain interfaces shared by data and components
-  hooks/           useTheme · useMediaQuery · useTableFilters
-  utils/           cn · format · status
-```
+Identical to `academy` so one person can move between the repos: Next.js 16 App Router ·
+React 19 · TypeScript · Tailwind v4 · TanStack Query · react-hook-form + zod ·
+lucide-react · recharts.
+
+**Note:** lucide-react v1 dropped brand icons — `Github` and `Linkedin` do not exist.
+Use `FolderGit2` and `Share2`.
+
+---
+
+## What this console does
+
+**It is the engine of the platform.** A student cannot move forward until someone here
+approves something:
+
+- Approving a **LinkedIn post** unlocks all of that student's technical tasks
+- Approving their **final task** unlocks the ₹50 payment, which issues their certificate
+
+Because of that, every mutation surfaces its error loudly. A silent failure leaves a
+student frozen with no idea why.
+
+Rejection remarks are mandatory and go straight to the student — that text is the only
+feedback they receive.
+
+---
 
 ## Routes
 
-| Path | Page |
-|---|---|
-| `/` | Login (no auth — submitting navigates to `/dashboard`) |
-| `/dashboard` | KPI tiles, four charts, quick actions, activity, system status |
-| `/students` | Searchable/filterable student table |
-| `/internships` | Programme cards for the five KLS tracks |
-| `/certificates` | Issuance ledger with download actions |
-| `/payments` | Revenue summary, collections chart, transaction table |
-| `/analytics` | Growth, channel mix, programme mix, completion, revenue |
-| `/settings` | Company · SMTP · Payments · Security · Theme panels |
-| `/profile` | Admin profile, sessions, permissions |
-| `/support` | Ticket queue |
+```
+/login  /forgot-password  /reset-password  /accept-invite
+/                          overview: pending queues, funnel, quick actions
+/reviews/tasks             queue · /reviews/tasks/[id] detail with screenshot lightbox
+/reviews/linkedin          queue and detail in one split view
+/students                  directory with stage column
+/students/[id]             the same StudentJourney the student sees
+/catalogue/domains         super admin — CRUD, ordering, activate/deactivate
+/catalogue/batches         super admin
+/catalogue/batches/[id]/tasks   super admin — CRUD, reorder, enable/disable,
+                                per-task submission rules
+/payments  /certificates  /analytics
+/activity-logs             super admin
+/team                      super admin — invite administrators
+/profile
+```
 
-## Design language
+---
 
-Brand palette is Navy / Azure Blue / White / Light Gray, expressed as Tailwind
-`@theme` tokens in `src/index.css`. Components never reference raw hex — they
-use semantic roles (`--surface`, `--ink-primary`, `--hairline`, …) which are
-redefined once under `.dark`, so light and dark themes swap in a single place.
+## Roles
 
-Chart series colours are declared as CSS custom properties (`--s1`…`--s4`, plus
-an ordinal blue ramp `--ord-1`…`--ord-4`) and were validated for colour-vision
-separation and contrast against **both** the light (`#ffffff`) and dark
-(`#0f1b2e`) card surfaces. Every chart carries a legend when it has two or more
-series, plus a hover tooltip, so a value is never communicated by colour alone.
+| Capability | admin | super_admin |
+| --- | :---: | :---: |
+| Review LinkedIn and task submissions | ✅ | ✅ |
+| View students, payments, certificates, analytics | ✅ | ✅ |
+| Create / edit / delete domains, batches, tasks | ❌ | ✅ |
+| Revoke certificates | ❌ | ✅ |
+| Read activity logs | ❌ | ✅ |
+| Invite and manage administrators | ❌ | ✅ |
 
-## Swapping mocks for the FastAPI backend
+`RoleGate` hides what a role cannot use and `RequireCapability` blocks whole routes —
+but **the API enforces all of it**. The UI check is convenience; a 403 is still handled
+gracefully if one slips through.
 
-1. Each module in `src/data/` exports plain typed values matching `src/types`.
-   Replace the export with a fetch/react-query hook of the same shape.
-2. `useTableFilters` is the seam for search and status filtering — point it at
-   server-side query params without touching any page component.
-3. Add a route guard around the `AppLayout` branch in `src/routes/index.tsx`
-   once real authentication exists. Login already lives outside the shell.
+---
 
-## Notes / deviations
+## Task configuration
 
-- **React 19** is installed (the scaffold shipped with it) rather than React 18.
-  Nothing in the codebase uses React 19-only APIs, so it runs on 18 unchanged if
-  the team prefers to pin down.
-- **shadcn/ui components are hand-written** in `src/components/ui` following the
-  same composition and `cva` variant patterns, rather than generated via the CLI.
-  This keeps the prototype free of Radix runtime dependencies; swapping in the
-  real shadcn primitives later is a drop-in per component.
-- All buttons, forms, toggles and download actions are presentational. Only
-  search, filters, tabs, sidebar collapse and the theme toggle actually do
-  anything.
+Each task carries its own submission rules, set by a super admin and enforced by the API:
+
+| Setting | Effect |
+| --- | --- |
+| Minimum / maximum screenshots | 0–20, checked on upload |
+| Require GitHub repository | Makes the repo URL mandatory or optional |
+| Require explanation + minimum length | Written explanation and how long it must be |
+| Require live demo | Makes the demo URL mandatory |
+| Task is open | Disabled tasks are hidden from students |
+
+**Disabling a task does not strand anyone.** The journey engine skips inactive tasks, so
+a student who finished everything else still reaches `all_tasks_approved`.
+
+**Reordering a live batch changes what is open to students mid-flight**, because tasks
+unlock one at a time behind the previous approval. The UI warns before it acts.
+
+---
+
+## Security
+
+- **Auto logout** after 30 minutes of inactivity, coordinated across browser tabs. Only a
+  timestamp goes in localStorage; no token ever does.
+- **Student accounts cannot sign in here** — `/api/auth/login` checks the role and refuses
+  before writing a cookie.
+- **A dead session redirects to `/login`** from one place in the API client, with a banner
+  explaining why.
+- **JWTs live in httpOnly cookies.** The browser calls `/api/proxy/*` and the Next server
+  attaches the token. An XSS payload cannot read it.
+- On a 401 the client refreshes once and replays; concurrent 401s share one refresh call.
+
+### Administrator invitations
+
+`/team` → Invite creates a **pending** account with an unusable random password hash and
+a 7-day single-use link. The invitee sets their own password at `/accept-invite`, so **no
+working credential is ever transmitted**.
+
+While email is unconfigured the invite link is shown with a copy button. Once `SMTP_HOST`
+is set it arrives by email instead and the box disappears — no code change.
+
+---
+
+## Architecture
+
+```
+browser ──► /api/auth/*   (route handlers) ──► FastAPI   sets httpOnly cookies
+        └─► /api/proxy/*  (pass-through)   ──► FastAPI   attaches Bearer token
+```
+
+---
+
+## Shared with the academy repo
+
+These files are **copied, not forked**. When they change, they change in `academy` first:
+
+| File | Why |
+| --- | --- |
+| `src/styles/theme.css` | The design contract — never add a hex outside it |
+| `src/types/index.ts` | Domain shapes. `GET /admin/students/{id}` returns the same `StudentJourney` the student dashboard uses |
+| `src/components/ui/*` | Button, Card, Input, Dialog, Toast, form primitives |
+| `src/lib/api/{client,errors}.ts` | HTTP client and error taxonomy |
+
+Admin-only additions: `DataTable`, `FilterBar`, `ConfirmDialog`, `RoleGate`,
+`ScreenshotGallery`, `ReviewPanel`, `TaskFormDialog`, `InviteDialog`.
+
+---
+
+## Conventions
+
+- Never write "Pvt. Ltd." — the organisation is **KLS Tech Solutions**, MSME registered
+- Support address is `klstechsolutions2025@gmail.com`
+- Money is stored in paise; divide by 100 only at the point of display
+- Task counts vary per domain; `order_number` 0 is the LinkedIn onboarding task
+
+## Not built yet
+
+- Bulk review actions
+- CSV export of students and payments

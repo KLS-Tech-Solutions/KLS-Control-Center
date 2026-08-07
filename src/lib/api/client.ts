@@ -31,6 +31,17 @@ async function refreshSession(): Promise<boolean> {
   return refreshInFlight;
 }
 
+
+/**
+ * A dead session ends in exactly one place. `replace` rather than `push` so the
+ * back button cannot return to a screen that will only 401 again.
+ */
+function redirectToLogin() {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname.startsWith("/login")) return;
+  window.location.replace("/login?reason=expired");
+}
+
 /**
  * The single place the browser makes a request. Everything goes through the
  * Next proxy at /api/proxy, which forwards to FastAPI with the httpOnly JWT
@@ -85,6 +96,13 @@ export async function apiRequest<T>(
     if (refreshed) {
       return apiRequest<T>(path, { ...options, retryOnUnauthorized: false });
     }
+    // The session is genuinely gone. Send them to sign in rather than letting
+    // every screen render its own "unauthorised" error.
+    redirectToLogin();
+  }
+
+  if (response.status === 401) {
+    redirectToLogin();
   }
 
   if (!response.ok) {

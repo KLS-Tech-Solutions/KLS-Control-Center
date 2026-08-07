@@ -47,8 +47,10 @@ export interface InternshipDomain {
   duration: string;
   difficulty: Difficulty;
   status: PublishStatus;
-  /* Presentation-only fields, not persisted in the MVP schema. */
   icon: string;
+  image_url: string | null;
+  /** Position in the public catalogue. Lower numbers appear first. */
+  display_order: number;
   outcomes: string[];
   skills: string[];
   task_count: number;
@@ -111,10 +113,20 @@ export interface Task {
   title: string;
   description: string;
   order_number: number;
-  deadline: ISODate;
-  /* Presentation-only. */
+  deadline: ISODate | null;
   requirements: string[];
   estimated_hours: number;
+
+  /* --- submission rules, configured per task by a super admin ----------- */
+  /** A disabled task is hidden from students and skipped by the journey engine. */
+  is_active: boolean;
+  instructions: string | null;
+  min_screenshots: number;
+  max_screenshots: number;
+  require_github: boolean;
+  require_explanation: boolean;
+  min_explanation_chars: number;
+  require_live_demo: boolean;
 }
 
 export type SubmissionStatus =

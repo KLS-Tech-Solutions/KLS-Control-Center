@@ -167,7 +167,13 @@ function Domains() {
           error={create.error}
           onSubmit={async (values) => {
             try {
-              await create.mutateAsync({ ...values, outcomes: [], skills: [] });
+              await create.mutateAsync({
+                ...values,
+                display_order: Number(values.display_order),
+                image_url: values.image_url || null,
+                outcomes: [],
+                skills: [],
+              });
               toast({ title: "Domain created", variant: "success" });
               setCreating(false);
             } catch {
@@ -186,7 +192,14 @@ function Domains() {
           error={update.error}
           onSubmit={async (values) => {
             try {
-              await update.mutateAsync({ id: editing.id, input: values });
+              await update.mutateAsync({
+                id: editing.id,
+                input: {
+                  ...values,
+                  display_order: Number(values.display_order),
+                  image_url: values.image_url || null,
+                },
+              });
               toast({ title: "Domain updated", variant: "success" });
               setEditing(null);
             } catch {

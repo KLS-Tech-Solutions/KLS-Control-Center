@@ -34,6 +34,8 @@ export function DomainFormDialog({
       duration: domain?.duration ?? "4 weeks",
       difficulty: domain?.difficulty ?? "intermediate",
       icon: domain?.icon ?? "code",
+      image_url: domain?.image_url ?? "",
+      display_order: domain?.display_order ?? 0,
       status: domain?.status ?? "active",
     },
   });
@@ -134,13 +136,47 @@ export function DomainFormDialog({
           </FormField>
         </div>
 
+        <div className="grid gap-5 sm:grid-cols-2">
+          <FormField
+            form={form}
+            name="icon"
+            label="Icon"
+            hint="code · layout · shield · sparkles · bot · chart"
+          >
+            {(field) => <Input {...field} {...form.register("icon")} placeholder="code" />}
+          </FormField>
+
+          <FormField
+            form={form}
+            name="display_order"
+            label="Position"
+            required
+            hint="Lower numbers appear first on the public site."
+          >
+            {(field) => (
+              <Input
+                {...field}
+                {...form.register("display_order")}
+                type="number"
+                min={0}
+              />
+            )}
+          </FormField>
+        </div>
+
         <FormField
           form={form}
-          name="icon"
-          label="Icon"
-          hint="code · layout · shield · sparkles · bot · chart"
+          name="image_url"
+          label="Image URL"
+          hint="Optional. Shown on the domain card if set."
         >
-          {(field) => <Input {...field} {...form.register("icon")} placeholder="code" />}
+          {(field) => (
+            <Input
+              {...field}
+              {...form.register("image_url")}
+              placeholder="https://…"
+            />
+          )}
         </FormField>
       </form>
     </Dialog>

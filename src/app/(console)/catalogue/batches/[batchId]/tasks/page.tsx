@@ -9,7 +9,10 @@ import {
   ArrowDown,
   ArrowUp,
   ListOrdered,
+  Pencil,
   Plus,
+  ToggleLeft,
+  ToggleRight,
   Save,
   Trash2,
 } from "lucide-react";
@@ -17,10 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Input, Textarea } from "@/components/ui/input";
-import { FormField, useZodForm } from "@/components/ui/form";
 import { Alert, Skeleton } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { RequireCapability } from "@/components/shared/role-gate";
@@ -30,9 +30,11 @@ import {
   useDeleteTask,
   useReorderTasks,
   useTasks,
+  useUpdateTask,
 } from "@/hooks/use-admin-data";
 import { isApiError } from "@/lib/api/errors";
-import { taskSchema, type TaskValues } from "@/lib/validation";
+import type { TaskValues } from "@/lib/validation";
+import { TaskFormDialog } from "@/components/admin/task-form";
 import type { Task } from "@/types";
 
 export default function BatchTasksPage() {
@@ -47,11 +49,13 @@ function BatchTasks() {
   const params = useParams<{ batchId: string }>();
   const query = useTasks(params.batchId);
   const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const reorder = useReorderTasks();
   const { toast } = useToast();
 
   const [creating, setCreating] = React.useState(false);
+  const [editing, setEditing] = React.useState<Task | null>(null);
   const [deleting, setDeleting] = React.useState<Task | null>(null);
   const [order, setOrder] = React.useState<string[] | null>(null);
 
@@ -142,15 +146,58 @@ function BatchTasks() {
                   </span>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-medium text-ink">
-                      {task.title}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-[15px] font-medium text-ink">
+                        {task.title}
+                      </p>
+                      {!task.is_active && <Badge variant="neutral">Disabled</Badge>}
+                    </div>
                     <p className="text-[13px] text-muted">
-                      ~{task.estimated_hours} hours · {task.requirements.length} requirements
+                      ~{task.estimated_hours} h · {task.min_screenshots}–
+                      {task.max_screenshots} screenshots
+                      {task.require_github && " · GitHub"}
+                      {task.require_explanation &&
+                        ` · ${task.min_explanation_chars}+ chars`}
+                      {task.require_live_demo && " · live demo"}
                     </p>
                   </div>
 
                   <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditing(task)}
+                    >
+                      <Pencil />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={updateTask.isPending}
+                      onClick={async () => {
+                        try {
+                          await updateTask.mutateAsync({
+                            id: task.id,
+                            input: { is_active: !task.is_active },
+                          });
+                          toast({
+                            title: task.is_active ? "Task disabled" : "Task enabled",
+                            variant: "success",
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Couldn't update the task",
+                            description: isApiError(error)
+                              ? error.userMessage
+                              : "Try again.",
+                            variant: "error",
+                          });
+                        }
+                      }}
+                    >
+                      {task.is_active ? <ToggleRight /> : <ToggleLeft />}
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -219,28 +266,51 @@ function BatchTasks() {
         </div>
       )}
 
-      {creating && (
-        <TaskDialog
+      {(creating || editing) && (
+        <TaskFormDialog
+          open
+          task={editing}
           nextPosition={technical.length + 1}
-          pending={createTask.isPending}
-          error={createTask.error}
-          onClose={() => setCreating(false)}
+          pending={creating ? createTask.isPending : updateTask.isPending}
+          error={creating ? createTask.error : updateTask.error}
+          onClose={() => {
+            setCreating(false);
+            setEditing(null);
+          }}
           onSubmit={async (values) => {
+            const payload = {
+              title: values.title,
+              description: values.description,
+              order_number: Number(values.order_number),
+              estimated_hours: Number(values.estimated_hours),
+              deadline: values.deadline || undefined,
+              instructions: values.instructions || undefined,
+              is_active: values.is_active,
+              min_screenshots: Number(values.min_screenshots),
+              max_screenshots: Number(values.max_screenshots),
+              require_github: values.require_github,
+              require_explanation: values.require_explanation,
+              min_explanation_chars: Number(values.min_explanation_chars),
+              require_live_demo: values.require_live_demo,
+              requirements: (values.requirements ?? "")
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean),
+            };
+
             try {
-              await createTask.mutateAsync({
-                batch_id: params.batchId,
-                title: values.title,
-                description: values.description,
-                order_number: Number(values.order_number),
-                estimated_hours: Number(values.estimated_hours),
-                deadline: values.deadline || undefined,
-                requirements: (values.requirements ?? "")
-                  .split("\n")
-                  .map((line) => line.trim())
-                  .filter(Boolean),
-              } as never);
-              toast({ title: "Task added", variant: "success" });
+              if (editing) {
+                await updateTask.mutateAsync({ id: editing.id, input: payload });
+                toast({ title: "Task updated", variant: "success" });
+              } else {
+                await createTask.mutateAsync({
+                  batch_id: params.batchId,
+                  ...payload,
+                } as never);
+                toast({ title: "Task added", variant: "success" });
+              }
               setCreating(false);
+              setEditing(null);
               setOrder(null);
             } catch {
               // The dialog renders the error.
@@ -279,113 +349,5 @@ function BatchTasks() {
         }}
       />
     </div>
-  );
-}
-
-function TaskDialog({
-  nextPosition,
-  onClose,
-  onSubmit,
-  pending,
-  error,
-}: {
-  nextPosition: number;
-  onClose: () => void;
-  onSubmit: (values: TaskValues) => void;
-  pending: boolean;
-  error?: unknown;
-}) {
-  const form = useZodForm<TaskValues>(taskSchema, {
-    defaultValues: {
-      title: "",
-      description: "",
-      order_number: nextPosition,
-      estimated_hours: 10,
-      deadline: "",
-      requirements: "",
-    },
-  });
-
-  return (
-    <Dialog
-      open
-      onClose={onClose}
-      title="Add task"
-      description="Everything here is shown to the student on their task page."
-      size="lg"
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose} disabled={pending}>
-            Cancel
-          </Button>
-          <Button disabled={pending} onClick={form.handleSubmit((v) => onSubmit(v))}>
-            {pending ? "Adding…" : "Add task"}
-          </Button>
-        </>
-      }
-    >
-      <form className="flex flex-col gap-5" noValidate>
-        {Boolean(error) && (
-          <Alert variant="danger">
-            {isApiError(error) ? error.userMessage : "Couldn't add the task."}
-          </Alert>
-        )}
-
-        <FormField form={form} name="title" label="Title" required>
-          {(field) => (
-            <Input
-              {...field}
-              {...form.register("title")}
-              placeholder="Task 1 — REST API foundation"
-            />
-          )}
-        </FormField>
-
-        <FormField form={form} name="description" label="Brief" required>
-          {(field) => (
-            <Textarea
-              {...field}
-              {...form.register("description")}
-              rows={4}
-              placeholder="What the student must build."
-            />
-          )}
-        </FormField>
-
-        <div className="grid gap-5 sm:grid-cols-3">
-          <FormField form={form} name="order_number" label="Position" required>
-            {(field) => (
-              <Input {...field} {...form.register("order_number")} type="number" min={1} />
-            )}
-          </FormField>
-
-          <FormField form={form} name="estimated_hours" label="Hours" required>
-            {(field) => (
-              <Input {...field} {...form.register("estimated_hours")} type="number" min={1} />
-            )}
-          </FormField>
-
-          <FormField form={form} name="deadline" label="Deadline">
-            {(field) => <Input {...field} {...form.register("deadline")} type="date" />}
-          </FormField>
-        </div>
-
-        <FormField
-          form={form}
-          name="requirements"
-          label="Requirements"
-          hint="One per line. Shown as the checklist on the student's task page."
-        >
-          {(field) => (
-            <Textarea
-              {...field}
-              {...form.register("requirements")}
-              rows={4}
-              placeholder={"Public GitHub repository\nMinimum three screenshots\nWritten explanation"}
-            />
-          )}
-        </FormField>
-      </form>
-    </Dialog>
   );
 }
