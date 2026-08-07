@@ -1,38 +1,50 @@
-import { cva, type VariantProps } from 'class-variance-authority'
-import type { ButtonHTMLAttributes } from 'react'
-import { cn } from '@/utils/cn'
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-pill font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         primary:
-          'bg-azure-600 text-white shadow-[0_1px_2px_rgba(6,18,37,0.16)] hover:bg-azure-700',
-        navy: 'bg-navy-900 text-white hover:bg-navy-800 dark:bg-white dark:text-navy-950 dark:hover:bg-mist-200',
+          "bg-brand-gradient text-white shadow-soft hover:shadow-lift active:scale-[0.99]",
+        secondary:
+          "border border-line bg-white text-ink shadow-soft hover:border-brand/40 hover:shadow-card",
         outline:
-          'border border-hairline bg-surface text-[color:var(--ink-primary)] hover:bg-surface-muted',
-        ghost: 'text-secondary hover:bg-surface-muted hover:text-[color:var(--ink-primary)]',
-        subtle: 'bg-azure-50 text-azure-700 hover:bg-azure-100 dark:bg-azure-900/30 dark:text-azure-300 dark:hover:bg-azure-900/50',
-        danger: 'bg-[color:var(--color-status-critical)] text-white hover:brightness-95',
+          "border border-line bg-transparent text-ink hover:border-brand/40 hover:bg-brand-50",
+        ghost: "text-body hover:bg-brand-50 hover:text-ink",
+        danger: "bg-danger text-white shadow-soft hover:opacity-90",
+        link: "text-brand underline-offset-4 hover:underline",
+        inverse:
+          "bg-white text-navy shadow-soft hover:shadow-lift active:scale-[0.99]",
       },
       size: {
-        sm: 'h-8 px-3 text-[13px]',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-11 px-5 text-sm',
-        icon: 'h-9 w-9',
+        sm: "h-9 px-4 text-sm [&_svg]:size-4",
+        md: "h-11 px-5 text-[15px] [&_svg]:size-4",
+        lg: "h-12 px-6 text-[15px] [&_svg]:size-4",
+        icon: "h-10 w-10 [&_svg]:size-4",
       },
+      full: { true: "w-full", false: "" },
     },
-    defaultVariants: { variant: 'primary', size: 'md' },
+    defaultVariants: { variant: "primary", size: "md", full: false },
   },
-)
+);
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
-export function Button({ className, variant, size, ...props }: ButtonProps) {
-  return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />
-}
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, full, type = "button", ...props }, ref) => (
+    <button
+      ref={ref}
+      type={type}
+      className={cn(buttonVariants({ variant, size, full }), className)}
+      {...props}
+    />
+  ),
+);
+Button.displayName = "Button";
 
-export { buttonVariants }
+export { buttonVariants };

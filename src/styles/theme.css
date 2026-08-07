@@ -1,0 +1,59 @@
+/* ==========================================================================
+   KLS Design System
+   Single source of truth for the KLS product family. This file is copied
+   verbatim into the admin app so both surfaces stay visually identical.
+   Derived from klstechsolutions.in.
+   ========================================================================== */
+
+@theme {
+  /* Brand ---------------------------------------------------------------- */
+  --color-ink: #0a1a2b;
+  --color-ink-soft: #12293f;
+  --color-navy: #0b3a5e;
+  --color-brand: #1387c8;
+  --color-brand-700: #0d5f8e;
+  --color-brand-600: #1076af;
+  --color-brand-500: #1387c8;
+  --color-brand-100: #d9edfa;
+  --color-brand-50: #eef7fd;
+  --color-accent: #58a53a;
+  --color-accent-100: #dbf0cc;
+  --color-accent-50: #eef8e6;
+
+  /* Neutrals ------------------------------------------------------------- */
+  --color-body: #4a5b6b;
+  --color-muted: #7b8b99;
+  --color-line: #e4eaf0;
+  --color-line-soft: #eef2f6;
+  --color-surface: #ffffff;
+  --color-canvas: #f7fafc;
+
+  /* Status --------------------------------------------------------------- */
+  --color-success: #2f8f4e;
+  --color-success-bg: #eaf7ee;
+  --color-warning: #b8790a;
+  --color-warning-bg: #fdf4e3;
+  --color-danger: #c0392b;
+  --color-danger-bg: #fdeceb;
+  --color-info: #1387c8;
+  --color-info-bg: #eef7fd;
+
+  /* Typography ----------------------------------------------------------- */
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Radius --------------------------------------------------------------- */
+  --radius-card: 1.25rem;
+  --radius-field: 0.75rem;
+  --radius-pill: 999px;
+
+  /* Elevation ------------------------------------------------------------ */
+  --shadow-soft: 0 1px 2px rgb(10 26 43 / 0.04), 0 8px 24px -12px rgb(10 26 43 / 0.12);
+  --shadow-card: 0 1px 2px rgb(10 26 43 / 0.04), 0 12px 32px -14px rgb(10 26 43 / 0.16);
+  --shadow-lift: 0 2px 4px rgb(10 26 43 / 0.05), 0 24px 48px -18px rgb(10 26 43 / 0.22);
+  --shadow-nav: 0 1px 2px rgb(10 26 43 / 0.04), 0 10px 30px -12px rgb(10 26 43 / 0.15);
+
+  /* Motion --------------------------------------------------------------- */
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+}
