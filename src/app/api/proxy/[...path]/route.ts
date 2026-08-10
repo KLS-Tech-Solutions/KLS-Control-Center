@@ -43,12 +43,19 @@ async function handler(
     );
   }
 
-  const payload = await response.text();
-  return new NextResponse(payload || null, {
+  // Read as bytes, not text — a PDF or image would be corrupted by a text
+  // round-trip. Content-Disposition is forwarded so downloads keep their
+  // filename instead of opening inline.
+  const payload = await response.arrayBuffer();
+  const headers = new Headers({
+    "Content-Type": response.headers.get("content-type") ?? "application/json",
+  });
+  const disposition = response.headers.get("content-disposition");
+  if (disposition) headers.set("Content-Disposition", disposition);
+
+  return new NextResponse(payload.byteLength ? payload : null, {
     status: response.status,
-    headers: {
-      "Content-Type": response.headers.get("content-type") ?? "application/json",
-    },
+    headers,
   });
 }
 
