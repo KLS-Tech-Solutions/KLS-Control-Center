@@ -43,13 +43,19 @@ export function Dialog({
         onClick={onClose}
         aria-hidden
       />
+      {/*
+        Header and footer stay put; only the body scrolls. A long form — the
+        task editor especially — must never push its Save button off-screen,
+        and on a short laptop window the whole dialog has to stay reachable.
+      */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "relative w-full rounded-card border border-line bg-white shadow-lift",
-          "duration-200 animate-in fade-in zoom-in-95",
+          "relative flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden",
+          "rounded-card border border-line bg-white shadow-lift",
+          "duration-200 animate-in fade-in zoom-in-95 sm:max-h-[calc(100dvh-4rem)]",
           width,
         )}
       >
@@ -57,23 +63,28 @@ export function Dialog({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-4 top-4 rounded-full p-1.5 text-muted transition-colors hover:bg-canvas hover:text-ink"
+          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-1.5 text-muted backdrop-blur transition-colors hover:bg-canvas hover:text-ink"
         >
           <X className="size-4" />
         </button>
 
         {(title || description) && (
-          <div className="p-6 pb-0 pr-12">
-            {title && <h2 className="text-xl font-semibold">{title}</h2>}
+          <div className="shrink-0 p-5 pb-0 pr-12 sm:p-6 sm:pb-0">
+            {title && <h2 className="text-lg font-semibold sm:text-xl">{title}</h2>}
             {description && (
               <p className="mt-2 text-[15px] leading-relaxed text-body">{description}</p>
             )}
           </div>
         )}
 
-        {children && <div className="p-6">{children}</div>}
+        {children && (
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6">
+            {children}
+          </div>
+        )}
+
         {footer && (
-          <div className="flex flex-col-reverse gap-3 border-t border-line p-6 sm:flex-row sm:justify-end">
+          <div className="shrink-0 flex flex-col-reverse gap-3 border-t border-line bg-white p-5 sm:flex-row sm:justify-end sm:p-6">
             {footer}
           </div>
         )}

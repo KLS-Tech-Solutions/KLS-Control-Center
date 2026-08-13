@@ -36,6 +36,48 @@
 
   p { text-wrap: pretty; }
 
+  /*
+    Responsive guardrails — these hold everywhere, so individual screens don't
+    each have to remember them.
+  */
+
+  html {
+    /* `clip` rather than `hidden`: it stops a stray decorative element from
+       creating a sideways scrollbar without breaking `position: sticky`,
+       which `overflow: hidden` silently does. */
+    overflow-x: clip;
+  }
+
+  body {
+    /* A pasted LinkedIn URL, a long email address or a GitHub repo link would
+       otherwise push a card wider than a 360px phone. */
+    overflow-wrap: anywhere;
+  }
+
+  /* iOS Safari zooms the whole page when a focused field is under 16px. Full
+     size on touch, tighter on pointer devices where there is no such penalty. */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  @media (pointer: fine) {
+    input, select, textarea {
+      font-size: inherit;
+    }
+  }
+
+  /* Media never escapes its column. */
+  img, svg, video, canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Tables opt into their own horizontal scroll; the page never scrolls
+     sideways because of one. */
+  table {
+    max-width: 100%;
+  }
+
   ::selection {
     background: var(--color-brand-100);
     color: var(--color-ink);

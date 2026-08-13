@@ -22,7 +22,9 @@ import {
   getAnalyticsOverview,
   listActivityLogs,
   listCertificates,
+  getPlatformSettings,
   listPayments,
+  updateCertificateFee,
   revokeCertificate,
 } from "@/services/ops.service";
 import type { InternshipBatch, InternshipDomain, PaymentStatus, Task } from "@/types";
@@ -146,6 +148,24 @@ export function usePayments(status?: PaymentStatus) {
   return useQuery({
     queryKey: queryKeys.payments.list(status),
     queryFn: () => listPayments(status),
+  });
+}
+
+export function usePlatformSettings() {
+  return useQuery({
+    queryKey: queryKeys.settings,
+    queryFn: getPlatformSettings,
+  });
+}
+
+/** Super admin only — the API refuses anyone else regardless of the UI. */
+export function useUpdateCertificateFee() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (amountPaise: number) => updateCertificateFee(amountPaise),
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.settings, data);
+    },
   });
 }
 

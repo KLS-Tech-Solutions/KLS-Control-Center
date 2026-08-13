@@ -268,6 +268,8 @@ export interface StudentJourney {
   payment: Payment | null;
   certificate: Certificate | null;
   notifications: AppNotification[];
+  /** In paise, from the API config. Never hardcode the amount in the UI. */
+  certificate_fee_paise: number;
 }
 
 /* ==========================================================================
@@ -334,4 +336,12 @@ export interface InvitePreview {
   full_name: string;
   email: string;
   role: UserRole;
+}
+
+/** Operational values a super admin can change without a deploy. */
+export interface PlatformSettings {
+  /** In paise — 5000 is ₹50. Never render this without dividing by 100. */
+  certificate_fee_paise: number;
+  min_fee_paise: number;
+  max_fee_paise: number;
 }

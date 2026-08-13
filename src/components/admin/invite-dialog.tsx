@@ -8,6 +8,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input, Select } from "@/components/ui/input";
 import { FormField, useZodForm } from "@/components/ui/form";
 import { Alert } from "@/components/ui/misc";
+import { SpamNote } from "@/components/shared/spam-note";
 import { isApiError } from "@/lib/api/errors";
 import { inviteAdminSchema, type InviteAdminValues } from "@/lib/validation";
 import type { AdminInviteResult } from "@/types";
@@ -52,42 +53,45 @@ export function InviteDialog({
         footer={<Button onClick={onClose}>Done</Button>}
       >
         {result.email_delivered ? (
-          <Alert variant="success" icon={<Mail />} title="Email sent">
-            The invitation has been emailed to {result.admin.email}. The link expires in
-            7 days.
+          <Alert variant="success" icon={<Mail />} title="Invitation emailed">
+            Sent to {result.admin.email}. The link expires in 7 days.
           </Alert>
         ) : (
-          <>
-            <Alert variant="warning" title="Email isn't configured yet">
-              Send this link to {result.admin.email} yourself. It expires in 7 days and
-              works once.
-            </Alert>
-
-            <div className="mt-4 flex items-center gap-2 rounded-field border border-line bg-canvas p-3">
-              <code className="min-w-0 flex-1 truncate text-[13px] text-ink">
-                {result.invite_url}
-              </code>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={async () => {
-                  if (!result.invite_url) return;
-                  await navigator.clipboard.writeText(result.invite_url);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
-              >
-                {copied ? <Check /> : <Copy />}
-                {copied ? "Copied" : "Copy"}
-              </Button>
-            </div>
-
-            <p className="mt-3 text-[13px] leading-relaxed text-muted">
-              No password has been set. They choose their own from this link, so nothing
-              usable is travelling through email or chat.
-            </p>
-          </>
+          <Alert variant="warning" title="Email isn't configured">
+            Send this link to {result.admin.email} yourself. It expires in 7 days and
+            works once.
+          </Alert>
         )}
+
+        {/* Always shown. Even with email working, a new sending domain often
+            lands in spam — the inviter needs a link they can pass on. */}
+        <div className="mt-4 flex items-center gap-2 rounded-field border border-line bg-canvas p-3">
+          <code className="min-w-0 flex-1 truncate text-[13px] text-ink">
+            {result.invite_url}
+          </code>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={async () => {
+              if (!result.invite_url) return;
+              await navigator.clipboard.writeText(result.invite_url);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+          >
+            {copied ? <Check /> : <Copy />}
+            {copied ? "Copied" : "Copy"}
+          </Button>
+        </div>
+
+        {result.email_delivered && (
+          <SpamNote className="mt-4" action="invitation" />
+        )}
+
+        <p className="mt-3 text-[13px] leading-relaxed text-muted">
+          No password has been set. They choose their own from this link, so nothing
+          usable travels through email or chat.
+        </p>
       </Dialog>
     );
   }

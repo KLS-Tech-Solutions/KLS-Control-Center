@@ -5,6 +5,7 @@ import type {
   Certificate,
   Payment,
   PaymentStatus,
+  PlatformSettings,
 } from "@/types";
 
 export function listPayments(status?: PaymentStatus) {
@@ -31,4 +32,19 @@ export function listActivityLogs(
   filters: { user_id?: string; module?: string } = {},
 ) {
   return apiRequest<ActivityLogEntry[]>("/admin/activity-logs", { query: filters });
+}
+
+/**
+ * Operational settings. Readable by any admin; only a super admin may change
+ * the fee, which the API enforces regardless of what the console renders.
+ */
+export function getPlatformSettings() {
+  return apiRequest<PlatformSettings>("/admin/settings");
+}
+
+export function updateCertificateFee(amountPaise: number) {
+  return apiRequest<PlatformSettings>("/admin/settings/certificate-fee", {
+    method: "PATCH",
+    body: { amount_paise: amountPaise },
+  });
 }

@@ -103,7 +103,7 @@ export default function AnalyticsPage() {
         <StatCard
           label="Revenue"
           value={`₹${(data.revenue_paise / 100).toLocaleString("en-IN")}`}
-          hint="₹50 per certificate"
+          hint="Certificate issuance fees"
           icon={<IndianRupee />}
         />
       </div>

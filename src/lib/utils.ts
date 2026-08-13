@@ -28,13 +28,19 @@ export function formatDateTime(value: string | Date | null | undefined) {
   });
 }
 
-/** ₹50 */
-export function formatCurrency(paise: number) {
+/**
+ * Formats a **rupee** amount, e.g. 50 → ₹50.
+ *
+ * Money is stored in paise everywhere else (Razorpay's unit), so callers
+ * divide by 100 on the way in. The old parameter name said `paise`, which
+ * invited exactly the mistake it caused: ₹50 rendering as ₹5,000.
+ */
+export function formatCurrency(rupees: number) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 0,
-  }).format(paise);
+  }).format(rupees);
 }
 
 /** Mimics network latency so loading states are exercised during development. */

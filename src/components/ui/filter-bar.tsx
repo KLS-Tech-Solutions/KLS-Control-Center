@@ -37,7 +37,7 @@ export function FilterBar({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 border-b border-line p-4 sm:flex-row sm:items-center",
+        "flex flex-col gap-3 border-b border-line p-4 sm:flex-row sm:flex-wrap sm:items-center",
         className,
       )}
     >
@@ -64,12 +64,12 @@ export function FilterBar({
       )}
 
       {filters.map((filter) => (
-        <label key={filter.label} className="flex items-center gap-2">
+        <label key={filter.label} className="flex w-full items-center gap-2 sm:w-auto">
           <span className="sr-only">{filter.label}</span>
           <Select
             value={filter.value}
             onChange={(e) => filter.onChange(e.target.value)}
-            className="h-10 w-auto min-w-[10rem]"
+            className="h-10 w-full sm:w-auto sm:min-w-[10rem]"
           >
             {filter.options.map((option) => (
               <option key={option.value} value={option.value}>

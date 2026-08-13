@@ -68,14 +68,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const roleLabel = user?.role === "super_admin" ? "Super admin" : "Admin";
 
+  /*
+    The brand and the account block are pinned; the nav between them scrolls.
+    On a short window — a laptop at 1280×600, or a phone in landscape — the
+    sign-out button was previously pushed below the fold and unreachable.
+  */
   const sidebar = (
-    <div className="flex h-full flex-col gap-6 p-4">
-      <Link href="/" className="flex items-center gap-2.5 px-2 text-ink">
+    <div className="flex h-full min-h-0 flex-col p-4">
+      <Link href="/" className="mb-6 flex shrink-0 items-center gap-2.5 px-2 pr-10 text-ink">
         <Logo className="h-7 w-auto" />
         <span className="text-[15px] font-semibold">Admin</span>
       </Link>
 
-      <nav className="flex flex-col gap-1">
+      <nav className="-mr-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain pr-2">
         {visibleNav.map((item) => {
           const count = item.counter ? counts[item.counter] : 0;
           return (
@@ -101,7 +106,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      <div className="mt-auto border-t border-line pt-4">
+      <div className="mt-4 shrink-0 border-t border-line pt-4">
         {user && (
           <div className="flex items-center gap-3 px-3 py-2">
             <Avatar name={user.full_name} className="size-9" />
@@ -136,7 +141,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 w-72 bg-white shadow-lift">
+          <aside className="absolute inset-y-0 left-0 flex w-[min(18rem,85vw)] flex-col bg-white shadow-lift">
             <button
               type="button"
               onClick={() => setOpen(false)}

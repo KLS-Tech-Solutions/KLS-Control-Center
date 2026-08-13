@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField, useZodForm } from "@/components/ui/form";
 import { Alert } from "@/components/ui/misc";
+import { SpamNote } from "@/components/shared/spam-note";
 import { useToast } from "@/components/ui/toast";
 import { isApiError } from "@/lib/api/errors";
 import { requestPasswordReset, resetPassword } from "@/services/auth.service";
@@ -26,12 +27,15 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div className="mt-6 rounded-field bg-accent-50 p-5 text-center">
-        <CheckCircle2 className="mx-auto size-6 text-accent" />
-        <p className="mt-3 text-[15px] leading-relaxed text-ink">
-          If that email belongs to an administrator, a reset link is on its way. The
-          link expires in 30 minutes.
-        </p>
+      <div className="mt-6 flex flex-col gap-4">
+        <div className="rounded-field bg-accent-50 p-5 text-center">
+          <CheckCircle2 className="mx-auto size-6 text-accent" />
+          <p className="mt-3 text-[15px] leading-relaxed text-ink">
+            If that email belongs to an administrator, a reset link is on its way. The
+            link expires in 30 minutes.
+          </p>
+        </div>
+        <SpamNote action="reset email" />
       </div>
     );
   }

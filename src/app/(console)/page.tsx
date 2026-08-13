@@ -155,7 +155,8 @@ export default function OverviewPage() {
               <div className="mt-6 flex items-center gap-3 rounded-field bg-canvas p-4">
                 <IndianRupee className="size-5 shrink-0 text-muted" />
                 <p className="text-[15px] leading-relaxed text-body">
-                  Revenue is the ₹50 certificate fee only — the internship itself is free.
+                  Revenue is the certificate issuance fee only — the internship itself
+                  is free.
                 </p>
               </div>
             </Card>
