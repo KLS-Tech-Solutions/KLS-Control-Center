@@ -25,8 +25,6 @@ const STAGE_LABELS: Record<string, string> = {
   linkedin_approved: "LinkedIn approved",
   tasks_in_progress: "Tasks in progress",
   all_tasks_approved: "Tasks approved",
-  payment_pending: "Payment pending",
-  paid: "Paid",
   certificate_issued: "Certified",
 };
 

@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock, FileEdit, RotateCcw, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { PaymentStatus, ReviewStatus, SubmissionStatus } from "@/types";
+import type { ReviewStatus, SubmissionStatus } from "@/types";
 
 const submissionMap: Record<
   SubmissionStatus,
@@ -39,13 +39,3 @@ export function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
   );
 }
 
-export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
-  const map = {
-    created: { label: "Not paid", variant: "neutral" as const },
-    pending: { label: "Processing", variant: "warning" as const },
-    success: { label: "Paid", variant: "success" as const },
-    failed: { label: "Failed", variant: "danger" as const },
-  }[status];
-
-  return <Badge variant={map.variant}>{map.label}</Badge>;
-}

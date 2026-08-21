@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, Skeleton } from "@/components/ui/misc";
 import { SubmissionStatusBadge } from "@/components/shared/status";
 import { ErrorState, PageHeader, StageBadge } from "@/components/shared/primitives";
+import type { StudentJourney } from "@/types";
 import { useStudent } from "@/hooks/use-admin-data";
 import { isApiError } from "@/lib/api/errors";
 
@@ -224,43 +225,94 @@ export default function StudentDetailPage() {
             )}
           </Card>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <Card className="p-6">
-              <h2 className="text-[15px] font-semibold">Payment</h2>
-              {journey.payment ? (
-                <>
-                  <p className="mt-2 text-2xl font-bold text-ink">
-                    ₹{journey.payment.amount}
-                  </p>
-                  <p className="mt-1 text-[13px] capitalize text-muted">
-                    {journey.payment.payment_status}
-                    {journey.payment.paid_at &&
-                      ` · ${formatDate(journey.payment.paid_at)}`}
-                  </p>
-                </>
-              ) : (
-                <p className="mt-2 text-[15px] text-body">No payment yet.</p>
-              )}
-            </Card>
-
-            <Card className="p-6">
-              <h2 className="text-[15px] font-semibold">Certificate</h2>
-              {journey.certificate ? (
-                <>
-                  <p className="mt-2 font-mono text-sm font-medium text-ink">
-                    {journey.certificate.certificate_number}
-                  </p>
-                  <p className="mt-1 text-[13px] text-muted">
-                    Issued {formatDate(journey.certificate.issued_at)}
-                  </p>
-                </>
-              ) : (
-                <p className="mt-2 text-[15px] text-body">Not issued yet.</p>
-              )}
-            </Card>
-          </div>
+          <InternshipHistory history={journey.history} />
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Every internship this student has taken, not just the one in progress.
+ *
+ * The page previously showed only the current enrolment, so a reviewer looking
+ * at someone on their second internship could not see that they had already
+ * completed one — which is exactly the context you want when judging their
+ * work.
+ */
+function InternshipHistory({
+  history,
+}: {
+  history: StudentJourney["history"];
+}) {
+  if (history.length === 0) {
+    return (
+      <Card className="p-6">
+        <h2 className="text-[15px] font-semibold">Internships</h2>
+        <p className="mt-2 text-[15px] text-body">
+          This student has not enrolled in anything yet.
+        </p>
+      </Card>
+    );
+  }
+
+  const completed = history.filter((h) => h.certificate_number).length;
+
+  return (
+    <Card className="p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[15px] font-semibold">Internships</h2>
+        <p className="text-[13px] text-muted">
+          {history.length} taken · {completed} completed
+        </p>
+      </div>
+
+      <ol className="mt-5 flex flex-col gap-4">
+        {history.map((entry) => (
+          <li
+            key={entry.enrollment_id}
+            className="rounded-field border border-line p-4"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-semibold text-ink">{entry.domain_title}</p>
+              {entry.is_current && <Badge variant="brand">Current</Badge>}
+              {entry.certificate_number ? (
+                <Badge variant="success">Completed</Badge>
+              ) : (
+                <Badge variant="warning">In progress</Badge>
+              )}
+            </div>
+
+            <p className="mt-1 text-[13px] text-muted">
+              {entry.batch_name}
+              {entry.duration ? ` · ${entry.duration}` : ""} · Enrolled{" "}
+              {formatDate(entry.enrolled_at)}
+              {entry.completed_at
+                ? ` · Completed ${formatDate(entry.completed_at)}`
+                : ""}
+            </p>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1.5 text-[13px]">
+              <span className="text-body">
+                <span className="font-semibold text-ink">
+                  {entry.tasks_approved}/{entry.tasks_total}
+                </span>{" "}
+                tasks approved
+              </span>
+              {entry.offer_letter_number && (
+                <span className="font-mono text-muted">
+                  {entry.offer_letter_number}
+                </span>
+              )}
+              {entry.certificate_number && (
+                <span className="font-mono text-success">
+                  {entry.certificate_number}
+                </span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </Card>
   );
 }

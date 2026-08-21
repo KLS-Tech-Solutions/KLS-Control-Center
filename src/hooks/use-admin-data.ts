@@ -20,14 +20,16 @@ import {
 } from "@/services/catalogue.service";
 import {
   getAnalyticsOverview,
+  createChapter,
+  deleteChapter,
   listActivityLogs,
+  listChapters,
+  updateChapter,
+  uploadChapterPdf,
   listCertificates,
-  getPlatformSettings,
-  listPayments,
-  updateCertificateFee,
   revokeCertificate,
 } from "@/services/ops.service";
-import type { InternshipBatch, InternshipDomain, PaymentStatus, Task } from "@/types";
+import type { InternshipBatch, InternshipDomain, Task } from "@/types";
 
 /* --- Students -------------------------------------------------------------- */
 
@@ -144,31 +146,6 @@ export function useReorderTasks() {
 
 /* --- Ops ------------------------------------------------------------------- */
 
-export function usePayments(status?: PaymentStatus) {
-  return useQuery({
-    queryKey: queryKeys.payments.list(status),
-    queryFn: () => listPayments(status),
-  });
-}
-
-export function usePlatformSettings() {
-  return useQuery({
-    queryKey: queryKeys.settings,
-    queryFn: getPlatformSettings,
-  });
-}
-
-/** Super admin only — the API refuses anyone else regardless of the UI. */
-export function useUpdateCertificateFee() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (amountPaise: number) => updateCertificateFee(amountPaise),
-    onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.settings, data);
-    },
-  });
-}
-
 export function useCertificates() {
   return useQuery({
     queryKey: queryKeys.certificates.all,
@@ -197,5 +174,48 @@ export function useActivityLogs(filters: { user_id?: string; module?: string } =
   return useQuery({
     queryKey: queryKeys.logs.list(filters),
     queryFn: () => listActivityLogs(filters),
+  });
+}
+
+
+/* --- Study notes ----------------------------------------------------------- */
+
+export function useChapters(domainId?: string) {
+  return useQuery({
+    queryKey: queryKeys.chapters(domainId),
+    queryFn: () => listChapters(domainId),
+  });
+}
+
+function useChapterInvalidator() {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: ["chapters"] });
+}
+
+export function useCreateChapter() {
+  const invalidate = useChapterInvalidator();
+  return useMutation({ mutationFn: createChapter, onSuccess: invalidate });
+}
+
+export function useUpdateChapter() {
+  const invalidate = useChapterInvalidator();
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown>) =>
+      updateChapter(id, body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteChapter() {
+  const invalidate = useChapterInvalidator();
+  return useMutation({ mutationFn: deleteChapter, onSuccess: invalidate });
+}
+
+export function useUploadChapterPdf() {
+  const invalidate = useChapterInvalidator();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
+      uploadChapterPdf(id, file),
+    onSuccess: invalidate,
   });
 }

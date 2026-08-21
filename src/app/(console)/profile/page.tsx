@@ -13,7 +13,7 @@ import { ROLE_CAPABILITIES, can, type Capability } from "@/types";
 const CAPABILITY_LABELS: Record<Capability, string> = {
   review: "Review LinkedIn and task submissions",
   viewStudents: "View student records",
-  viewMoney: "View payments and certificates",
+  viewMoney: "View students and certificates",
   manageCatalogue: "Create and edit domains, batches and tasks",
   revokeCertificates: "Revoke issued certificates",
   readActivityLogs: "Read activity logs",

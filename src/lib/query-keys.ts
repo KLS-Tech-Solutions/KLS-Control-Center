@@ -29,11 +29,7 @@ export const queryKeys = {
     tasks: (batchId: string) => ["catalogue", "tasks", batchId] as const,
   },
 
-  settings: ["settings"] as const,
-  payments: {
-    all: ["payments"] as const,
-    list: (status?: string) => ["payments", status ?? "all"] as const,
-  },
+  chapters: (domainId?: string) => ["chapters", domainId ?? "all"] as const,
 
   certificates: {
     all: ["certificates"] as const,

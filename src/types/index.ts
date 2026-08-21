@@ -171,16 +171,7 @@ export interface AdminReview {
 
 /* --- money & credentials --------------------------------------------------- */
 
-export type PaymentStatus = "created" | "pending" | "success" | "failed";
 
-export interface Payment {
-  id: UUID;
-  student_id: UUID;
-  transaction_id: string;
-  amount: number;
-  payment_status: PaymentStatus;
-  paid_at: ISODate | null;
-}
 
 export interface Certificate {
   id: UUID;
@@ -231,8 +222,6 @@ export type JourneyStage =
   | "linkedin_approved"
   | "tasks_in_progress"
   | "all_tasks_approved"
-  | "payment_pending"
-  | "paid"
   | "certificate_issued";
 
 export const JOURNEY_ORDER: JourneyStage[] = [
@@ -243,8 +232,6 @@ export const JOURNEY_ORDER: JourneyStage[] = [
   "linkedin_approved",
   "tasks_in_progress",
   "all_tasks_approved",
-  "payment_pending",
-  "paid",
   "certificate_issued",
 ];
 
@@ -265,11 +252,16 @@ export interface StudentJourney {
   linkedinSubmission: LinkedInSubmission | null;
   tasks: Task[];
   submissions: TaskSubmission[];
-  payment: Payment | null;
   certificate: Certificate | null;
   notifications: AppNotification[];
+  /**
+   * Every internship the student has taken, newest first, the current one
+   * flagged. The API returns this on /admin/students/{id} as well, which is
+   * how the console shows past internships alongside the one in progress.
+   */
+  history: InternshipHistoryEntry[];
+  can_enroll_again: boolean;
   /** In paise, from the API config. Never hardcode the amount in the UI. */
-  certificate_fee_paise: number;
 }
 
 /* ==========================================================================
@@ -338,10 +330,44 @@ export interface InvitePreview {
   role: UserRole;
 }
 
-/** Operational values a super admin can change without a deploy. */
-export interface PlatformSettings {
-  /** In paise — 5000 is ₹50. Never render this without dividing by 100. */
-  certificate_fee_paise: number;
-  min_fee_paise: number;
-  max_fee_paise: number;
+
+/** One chapter of study notes for an internship domain. */
+export interface LearningChapter {
+  id: string;
+  domain_id: string;
+  title: string;
+  summary: string | null;
+  order_number: number;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  pdf_url: string | null;
+  pdf_filename: string | null;
+  pdf_size_bytes: number | null;
+  estimated_minutes: number;
+  status: "active" | "inactive";
+  is_read: boolean;
+  /** Who last created or edited this chapter. Any admin can, so it is worth
+   *  recording. Empty for chapters that predate the audit column. */
+  updated_by: string | null;
+  updated_by_name: string;
+}
+
+/** One internship in a student's history. */
+export interface InternshipHistoryEntry {
+  enrollment_id: string;
+  batch_id: string;
+  batch_name: string;
+  domain_title: string;
+  domain_slug: string | null;
+  duration: string | null;
+  status: "active" | "completed" | "withdrawn";
+  enrolled_at: string;
+  completed_at: string | null;
+  is_current: boolean;
+  tasks_total: number;
+  tasks_approved: number;
+  offer_letter_number: string | null;
+  offer_letter_url: string | null;
+  certificate_number: string | null;
+  certificate_url: string | null;
+  certificate_issued_at: string | null;
 }

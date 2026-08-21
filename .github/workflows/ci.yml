@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, test and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # `npm ci` rather than `npm install`: it installs exactly what the
+      # lockfile says and fails if package.json has drifted from it, which is
+      # the behaviour you want in CI and not the behaviour you want locally.
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        # The build catches a whole class of thing typecheck does not — a
+        # server component importing a client-only module, a page that fails
+        # to prerender, a missing environment variable at build time.
+        run: npm run build
+        env:
+          # Placeholders. The build must not depend on real credentials, and
+          # if it ever does, this is where that breaks loudly.
+          API_BASE_URL: http://localhost:8000/api/v1
+          NEXT_PUBLIC_MIXPANEL_TOKEN: ""
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        # Build only, no push. Proves the Dockerfile is not broken without
+        # needing registry credentials in a public repository.
+        run: docker build -t kls-admin:ci .

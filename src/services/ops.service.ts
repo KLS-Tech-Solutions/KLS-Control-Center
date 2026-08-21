@@ -3,14 +3,8 @@ import type {
   ActivityLogEntry,
   AnalyticsOverview,
   Certificate,
-  Payment,
-  PaymentStatus,
-  PlatformSettings,
+  LearningChapter,
 } from "@/types";
-
-export function listPayments(status?: PaymentStatus) {
-  return apiRequest<Payment[]>("/admin/payments", { query: { status } });
-}
 
 export function listCertificates() {
   return apiRequest<Certificate[]>("/admin/certificates");
@@ -34,17 +28,54 @@ export function listActivityLogs(
   return apiRequest<ActivityLogEntry[]>("/admin/activity-logs", { query: filters });
 }
 
-/**
- * Operational settings. Readable by any admin; only a super admin may change
- * the fee, which the API enforces regardless of what the console renders.
- */
-export function getPlatformSettings() {
-  return apiRequest<PlatformSettings>("/admin/settings");
+
+
+// --- Study notes -------------------------------------------------------------
+
+export function listChapters(domainId?: string) {
+  return apiRequest<LearningChapter[]>("/admin/chapters", {
+    query: { domain_id: domainId },
+  });
 }
 
-export function updateCertificateFee(amountPaise: number) {
-  return apiRequest<PlatformSettings>("/admin/settings/certificate-fee", {
+export function createChapter(body: {
+  domain_id: string;
+  title: string;
+  summary?: string | null;
+  order_number: number;
+  difficulty: string;
+  estimated_minutes: number;
+}) {
+  return apiRequest<LearningChapter>("/admin/chapters", { method: "POST", body });
+}
+
+export function updateChapter(
+  id: string,
+  body: Partial<{
+    title: string;
+    summary: string | null;
+    order_number: number;
+    difficulty: string;
+    estimated_minutes: number;
+    status: string;
+  }>,
+) {
+  return apiRequest<LearningChapter>(`/admin/chapters/${id}`, {
     method: "PATCH",
-    body: { amount_paise: amountPaise },
+    body,
+  });
+}
+
+export function deleteChapter(id: string) {
+  return apiRequest<void>(`/admin/chapters/${id}`, { method: "DELETE" });
+}
+
+/** Multipart — the PDF replaces whatever was there before. */
+export function uploadChapterPdf(id: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiRequest<LearningChapter>(`/admin/chapters/${id}/pdf`, {
+    method: "POST",
+    formData,
   });
 }
