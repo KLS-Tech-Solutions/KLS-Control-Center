@@ -1,4 +1,4 @@
-# KLS Academy — Admin console
+# KLS Academy — Admin console...
 
 Internal review and management console at `admin.klstechsolutions.in`. Shares one FastAPI
 backend and one PostgreSQL database with the student portal.
